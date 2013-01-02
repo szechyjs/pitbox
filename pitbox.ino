@@ -26,10 +26,10 @@
 #define CONFIG_START 32
 
 struct ConfigStruct {
-  unsigned int redTime, greenTime;
+  unsigned int redTime_ms, greenTime_ms, resetTime_ms;
   char version[4];
 } config = {
-  8, 3,
+  8000, 3000, 1000,
   CONFIG_VERSION
 };
 
@@ -92,14 +92,14 @@ void setup()
 void redLeds(int time)
 {
   digitalWrite(PIN_RED_LEDS, HIGH);
-  delay(time * 1000);
+  delay(time);
   digitalWrite(PIN_RED_LEDS, LOW);
 }
 
 void greenLeds(int time)
 {
   digitalWrite(PIN_GREEN_LEDS, HIGH);
-  delay(time * 1000);
+  delay(time);
   digitalWrite(PIN_GREEN_LEDS, LOW);
 }
 
@@ -109,9 +109,12 @@ void loop()
   if (digitalRead(PIN_TRIGGER) == LOW)
   {
     // Turn on red LEDs
-    redLeds(config.redTime);
+    redLeds(config.redTime_ms);
 
     // Turn on green LEDs
-    greenLeds(config.greenTime);
+    greenLeds(config.greenTime_ms);
+
+    // Don't allow another button press yet
+    delay(config.resetTime_ms);
   }
 }
