@@ -10,8 +10,8 @@
 
 *******************************************************************************/
 
-// To Disable serial messages, comment out the following line
-#define VERBOSE
+// To enable serial messages, uncomment the following line
+//#define VERBOSE
 
 // Pin Configuration
 #define PIN_STATUS_LED  13
@@ -43,27 +43,29 @@ void setup()
   digitalWrite(PIN_STATUS_LED, HIGH);
 }
 
+void redLeds(int time)
+{
+  digitalWrite(PIN_RED_LEDS, HIGH);
+  delay(time);
+  digitalWrite(PIN_RED_LEDS, LOW);
+}
+
+void greenLeds(int time)
+{
+  digitalWrite(PIN_GREEN_LEDS, HIGH);
+  delay(time);
+  digitalWrite(PIN_GREEN_LEDS, LOW);
+}
+
 void loop()
 {
   // Check if button has been pressed
   if (digitalRead(PIN_TRIGGER) == LOW)
   {
     // Turn on red LEDs
-    digitalWrite(PIN_RED_LEDS, HIGH);
-
-    // Wait X seconds
-    delay(RED_ON_TIME);
-
-    // Turn off red LEDs
-    digitalWrite(PIN_RED_LEDS, LOW);
+    redLeds(RED_ON_TIME);
 
     // Turn on green LEDs
-    digitalWrite(PIN_GREEN_LEDS, HIGH);
-
-    // Wait Y seconds
-    delay(GREEN_ON_TIME);
-
-    // Turn off green LEDs
-    digitalWrite(PIN_GREEN_LEDS, LOW);
+    greenLeds(GREEN_ON_TIME);
   }
 }
