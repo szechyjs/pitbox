@@ -11,19 +11,19 @@
 *******************************************************************************/
 
 #include <EEPROM.h>
+#include "pitbox.h"
+#include "packet.h"
 
-// To enable serial debugging, uncomment the following line
-//#define VERBOSE
+static Packet gInputPacket;
 
-// Pin Configuration
-#define PIN_STATUS_LED  13
-#define PIN_RED_LEDS    11
-#define PIN_GREEN_LEDS  10
-#define PIN_TRIGGER     9
+// Structure that holds the state of incoming serial bytes.
+typedef struct {
+  uint8_t header_bytes_read;
+  uint8_t payload_bytes_remain;
+  bool bave_packet;
+}  RxPacketStat;
 
-// Configuration settings
-#define CONFIG_VERSION "v1"
-#define CONFIG_START 32
+static RxPacketStat gPacketStat;
 
 struct ConfigStruct {
   unsigned int redTime_ms, greenTime_ms, resetTime_ms;
@@ -32,6 +32,19 @@ struct ConfigStruct {
   8000, 3000, 1000,
   CONFIG_VERSION
 };
+
+//
+// Serial I/O
+//
+
+void writeHelloPacket()
+{
+  int foo = FIRMWARE_VERSION;
+  Packet packet;
+  packet.SetType(PBM_HELLO_ID);
+  packet.AddTag(PBM_HELLO_TAG_FIRMWARE_VERSION, sizeof(foo), (char*)&foo);
+  packet.Print();
+}
 
 void saveConfig()
 {
@@ -68,10 +81,7 @@ void loadConfig()
 
 void setup()
 {
-
-#ifdef VERBOSE
-  Serial.begin(9600);
-#endif
+  memset(&gPacketStat, 0, sizeof(RxPacketStat));
 
   // Read configuration from EEPROM
   loadConfig();
@@ -87,6 +97,9 @@ void setup()
   digitalWrite(PIN_GREEN_LEDS, LOW);
   digitalWrite(PIN_TRIGGER, HIGH);
   digitalWrite(PIN_STATUS_LED, HIGH);
+
+  Serial.begin(9600);
+  writeHelloPacket();
 }
 
 void redLeds(int time)
