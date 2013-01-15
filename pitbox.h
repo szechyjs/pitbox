@@ -2,10 +2,10 @@
 //#define VERBOSE
 
 // Pin Configuration
-#define PIN_STATUS_LED  13
-#define PIN_RED_LEDS    11
-#define PIN_GREEN_LEDS  10
-#define PIN_TRIGGER     9
+#define PIN_STATUS_LED  17
+#define PIN_RED_LEDS    6
+#define PIN_GREEN_LEDS  5
+#define PIN_TRIGGER     4
 
 // Configuration settings
 #define CONFIG_VERSION "v1"
