@@ -20,7 +20,7 @@ static Packet gInputPacket;
 typedef struct {
   uint8_t header_bytes_read;
   uint8_t payload_bytes_remain;
-  bool bave_packet;
+  bool have_packet;
 }  RxPacketStat;
 
 static RxPacketStat gPacketStat;
@@ -79,6 +79,16 @@ void loadConfig()
   }
 }
 
+void writeConfigPacket()
+{
+  Packet packet;
+  packet.SetType(PBM_CFG);
+  packet.AddTag(PBM_CFG_TAG_RED, sizeof(config.redTime_ms), (char*)(&config.redTime_ms));
+  packet.AddTag(PBM_CFG_TAG_GRN, sizeof(config.greenTime_ms), (char*)(&config.greenTime_ms));
+  packet.AddTag(PBM_CFG_TAG_DLY, sizeof(config.resetTime_ms), (char*)(&config.resetTime_ms));
+  packet.Print();
+}
+
 void setup()
 {
   memset(&gPacketStat, 0, sizeof(RxPacketStat));
@@ -102,6 +112,122 @@ void setup()
   writeHelloPacket();
 }
 
+static void readSerialBytes(char *dest_buf, int num_bytes, int offset)
+{
+  while (num_bytes-- != 0) {
+    dest_buf[offset++] = Serial.read();
+  }
+}
+
+void resetInputPacket()
+{
+  memset(&gPacketStat, 0, sizeof(RxPacketStat));
+  gInputPacket.Reset();
+}
+  
+void readIncomingSerialData()
+{
+  char serial_buf[PAYLOAD_MAXLEN];
+  volatile uint8_t bytes_available = Serial.available();
+  
+  // Do not read a new packet if we have one awaiting processing
+  // This should never happen.
+  if (gPacketStat.have_packet) {
+    return;
+  }
+  
+  // Look for a new packet.
+  if (gPacketStat.header_bytes_read < HEADER_PREFIX_LEN)
+  {
+    while (bytes_available > 0)
+    {
+      char next_char = Serial.read();
+      bytes_available -= 1;
+      
+      if (next_char == PREFIX[gPacketStat.header_bytes_read])
+      {
+        gPacketStat.header_bytes_read++;
+        if (gPacketStat.header_bytes_read == HEADER_PREFIX_LEN) {
+          // Found start of packet, break.
+          break;
+        }
+      }
+      else
+      {
+        // Wrong character in prefix; reset framing.
+        if (next_char == PREFIX[0]) {
+          gPacketStat.header_bytes_read = 1;
+        } else {
+          gPacketStat.header_bytes_read = 0;
+        }
+      }
+    }
+  }
+  
+  // Read the remainder of the header, if not yet found.
+  if (gPacketStat.header_bytes_read < HEADER_LEN)
+  {
+    if (bytes_available < 4) {
+      return;
+    }
+    gInputPacket.SetType(Serial.read() | (Serial.read() << 8));
+    gPacketStat.payload_bytes_remain = Serial.read() | (Serial.read() << 8);
+    bytes_available -= 4;
+    gPacketStat.header_bytes_read += 4;
+    
+    // Check that the 'len' field is not bogus. If it is, throw out the packet
+    // and reset.
+    if (gPacketStat.payload_bytes_remain > PAYLOAD_MAXLEN) {
+      goto out_reset;
+    }
+  }
+  
+  // If we haven't yet found a frame, or there are no more bytes to read after
+  // finda a frame, bail out.
+  if (bytes_available == 0 || (gPacketStat.header_bytes_read < HEADER_LEN)) {
+    return;
+  }
+  
+  if (gPacketStat.payload_bytes_remain)
+  {
+    int bytes_to_read = (gPacketStat.payload_bytes_remain >= bytes_available) ?
+      bytes_available : gPacketStat.payload_bytes_remain;
+    readSerialBytes(serial_buf, bytes_to_read, 0);
+    gInputPacket.AppendBytes(serial_buf, bytes_to_read);
+    gPacketStat.payload_bytes_remain -= bytes_to_read;
+    bytes_available -= bytes_to_read;
+  }
+  
+  // Need more payload bytes than are now available.
+  if (gPacketStat.payload_bytes_remain > 0) {
+    return;
+  }
+  
+  // We have a complete payload. Now grab the footer.
+  if (!gPacketStat.have_packet)
+  {
+    if (bytes_available < FOOTER_LEN) {
+      return;
+    }
+    readSerialBytes(serial_buf, FOOTER_LEN, 0);
+    
+    // Check CRC
+    
+    // Check trailer
+    if (strncmp((serial_buf + 2), TRAILER, FOOTER_TRAILER_LEN)) {
+      goto out_reset;
+    }
+    gPacketStat.have_packet = true;
+  }
+
+  // Done!
+  return;
+
+out_reset:
+  resetInputPacket();
+}
+  
+  
 void redLeds(int time)
 {
   digitalWrite(PIN_RED_LEDS, HIGH);
@@ -116,7 +242,7 @@ void greenLeds(int time)
   digitalWrite(PIN_GREEN_LEDS, LOW);
 }
 
-void loop()
+void processTrigger()
 {
   // Check if button has been pressed
   if (digitalRead(PIN_TRIGGER) == LOW)
@@ -130,4 +256,31 @@ void loop()
     // Don't allow another button press yet
     delay(config.resetTime_ms);
   }
+}
+
+void handleInputPacket()
+{
+  if (!gPacketStat.have_packet) {
+    return;
+  }
+  
+  // Process the input packet.
+  switch(gInputPacket.GetType())
+  {
+    case PBM_PING:
+      writeHelloPacket();
+      break;
+    case PBM_GET_CFG:
+      writeConfigPacket();
+      break;
+  }
+  resetInputPacket();
+}
+
+void loop()
+{
+  readIncomingSerialData();
+  handleInputPacket();
+  
+  processTrigger(); 
 }
