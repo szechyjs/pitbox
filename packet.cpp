@@ -51,16 +51,16 @@ uint8_t* Packet::FindTag(uint8_t tagnum) {
   return NULL;
 }
 
-bool Packet::ReadTag(uint8_t tagnum, uint8_t *value) {
+bool Packet::ReadTag(uint8_t tagnum, uint16_t *value) {
   uint8_t *offptr = FindTag(tagnum);
   if (offptr == NULL) {
     return false;
   }
-  *value = *(offptr + 2);
+  *value = *reinterpret_cast<uint16_t*>(offptr + 2);
   return value;
 }
 
-bool Packet::ReadTag(uint8_t tagnum, uint8_t** value) {
+bool Packet::ReadTag(uint8_t tagnum, uint16_t** value) {
   uint8_t *offptr = FindTag(tagnum);
   if (offptr == NULL) {
     return false;

@@ -89,6 +89,22 @@ void writeConfigPacket()
   packet.Print();
 }
 
+void readConfigPacket()
+{
+  uint16_t red_ms, green_ms, reset_ms;
+
+  if (!gInputPacket.ReadTag(PBM_CFG_TAG_RED, &red_ms)
+      || !gInputPacket.ReadTag(PBM_CFG_TAG_GRN, &green_ms)
+      || !gInputPacket.ReadTag(PBM_CFG_TAG_DLY, &reset_ms)) {
+    return;
+  }
+  config.redTime_ms = red_ms;
+  config.greenTime_ms = green_ms;
+  config.resetTime_ms = reset_ms;
+  saveConfig();
+  writeConfigPacket();
+}
+
 void setup()
 {
   memset(&gPacketStat, 0, sizeof(RxPacketStat));
@@ -272,6 +288,9 @@ void handleInputPacket()
       break;
     case PBM_GET_CFG:
       writeConfigPacket();
+      break;
+    case PBM_SET_CFG:
+      readConfigPacket();
       break;
   }
   resetInputPacket();

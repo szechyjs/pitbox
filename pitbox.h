@@ -10,11 +10,11 @@
 // Configuration settings
 #define CONFIG_VERSION "v1"
 #define CONFIG_START 32
-#define FIRMWARE_VERSION 1
+#define FIRMWARE_VERSION 2
 
 // Packet settings
 #define PREFIX "PBSP v1:"
-#define PREFIX_CRC 0xe3af
+#define PREFIX_CRC 0x7621
 #define TRAILER "\r\n"
 
 #define HEADER_LEN 12
@@ -30,6 +30,7 @@
 
 #define PBM_PING 0x81
 #define PBM_GET_CFG  0x10
+#define PBM_SET_CFG  0x20
 
 // Packets
 #define PBM_CFG  0x20
