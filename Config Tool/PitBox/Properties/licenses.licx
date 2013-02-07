@@ -1,0 +1,6 @@
+C1.Win.C1Input.C1TextBox, C1.Win.C1Input.4, Version=4.0.20122.33281, Culture=neutral, PublicKeyToken=7e7ff60f0c214f9a
+C1.Win.C1Ribbon.C1Ribbon, C1.Win.C1Ribbon.4, Version=4.0.20122.393, Culture=neutral, PublicKeyToken=79882d576c6336da
+C1.Win.C1Command.C1MainMenu, C1.Win.C1Command.4, Version=4.0.20122.19520, Culture=neutral, PublicKeyToken=e808566f358766d8
+C1.Win.C1Ribbon.C1StatusBar, C1.Win.C1Ribbon.4, Version=4.0.20122.393, Culture=neutral, PublicKeyToken=79882d576c6336da
+C1.Win.C1Command.C1NavBar, C1.Win.C1Command.4, Version=4.0.20122.19520, Culture=neutral, PublicKeyToken=e808566f358766d8
+C1.Win.C1Command.C1CommandHolder, C1.Win.C1Command.4, Version=4.0.20122.19520, Culture=neutral, PublicKeyToken=e808566f358766d8

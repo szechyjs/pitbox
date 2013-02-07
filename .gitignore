@@ -1,1 +1,7 @@
 build-cli/
+
+Config Tool/PitBox/bin
+Config Tool/PitBox/obj
+Config Tool/PitBox/publish
+*.user
+*.suo
