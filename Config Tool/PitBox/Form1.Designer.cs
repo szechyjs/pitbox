@@ -38,7 +38,11 @@
             this.ribbonQat1 = new C1.Win.C1Ribbon.RibbonQat();
             this.ribbonTab2 = new C1.Win.C1Ribbon.RibbonTab();
             this.ribbonGroup2 = new C1.Win.C1Ribbon.RibbonGroup();
+            this.ribbonButton2 = new C1.Win.C1Ribbon.RibbonButton();
+            this.ribbonButton1 = new C1.Win.C1Ribbon.RibbonButton();
             this.serialPortCombo = new C1.Win.C1Ribbon.RibbonComboBox();
+            this.ribbonGroup3 = new C1.Win.C1Ribbon.RibbonGroup();
+            this.ribbonButton3 = new C1.Win.C1Ribbon.RibbonButton();
             this.c1CommandHolder1 = new C1.Win.C1Command.C1CommandHolder();
             this.c1StatusBar1 = new C1.Win.C1Ribbon.C1StatusBar();
             this.lblCommStatus = new C1.Win.C1Ribbon.RibbonLabel();
@@ -52,10 +56,8 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.ribbonGroup3 = new C1.Win.C1Ribbon.RibbonGroup();
-            this.ribbonButton2 = new C1.Win.C1Ribbon.RibbonButton();
-            this.ribbonButton1 = new C1.Win.C1Ribbon.RibbonButton();
-            this.ribbonButton3 = new C1.Win.C1Ribbon.RibbonButton();
+            this.lblConnectionStatus = new C1.Win.C1Ribbon.RibbonLabel();
+            this.ribbonSeparator2 = new C1.Win.C1Ribbon.RibbonSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.c1Ribbon1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.c1CommandHolder1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.c1StatusBar1)).BeginInit();
@@ -122,11 +124,45 @@
             this.ribbonGroup2.Name = "ribbonGroup2";
             this.ribbonGroup2.Text = "Configuration";
             // 
+            // ribbonButton2
+            // 
+            this.ribbonButton2.Description = "Read configuration from EEPROM";
+            this.ribbonButton2.LargeImage = ((System.Drawing.Image)(resources.GetObject("ribbonButton2.LargeImage")));
+            this.ribbonButton2.Name = "ribbonButton2";
+            this.ribbonButton2.SmallImage = ((System.Drawing.Image)(resources.GetObject("ribbonButton2.SmallImage")));
+            this.ribbonButton2.Text = "Read";
+            this.ribbonButton2.ToolTip = "Read the confituration from the EEPROM";
+            this.ribbonButton2.Click += new System.EventHandler(this.ribbonButton2_Click);
+            // 
+            // ribbonButton1
+            // 
+            this.ribbonButton1.Description = "Save settings to EEPROM";
+            this.ribbonButton1.LargeImage = ((System.Drawing.Image)(resources.GetObject("ribbonButton1.LargeImage")));
+            this.ribbonButton1.Name = "ribbonButton1";
+            this.ribbonButton1.SmallImage = ((System.Drawing.Image)(resources.GetObject("ribbonButton1.SmallImage")));
+            this.ribbonButton1.Text = "Upload";
+            this.ribbonButton1.ToolTip = "Save current configuration to EEPROM";
+            this.ribbonButton1.Click += new System.EventHandler(this.ribbonButton1_Click);
+            // 
             // serialPortCombo
             // 
             this.serialPortCombo.Label = "Serial Port";
             this.serialPortCombo.Name = "serialPortCombo";
             this.serialPortCombo.SelectedIndexChanged += new System.EventHandler(this.serialPortCombo_SelectedIndexChanged);
+            // 
+            // ribbonGroup3
+            // 
+            this.ribbonGroup3.Items.Add(this.ribbonButton3);
+            this.ribbonGroup3.Name = "ribbonGroup3";
+            this.ribbonGroup3.Text = "Firmware";
+            // 
+            // ribbonButton3
+            // 
+            this.ribbonButton3.LargeImage = global::PitBox.Properties.Resources.chip;
+            this.ribbonButton3.Name = "ribbonButton3";
+            this.ribbonButton3.SmallImage = ((System.Drawing.Image)(resources.GetObject("ribbonButton3.SmallImage")));
+            this.ribbonButton3.Text = "Flash";
+            this.ribbonButton3.Click += new System.EventHandler(this.ribbonButton3_Click);
             // 
             // c1CommandHolder1
             // 
@@ -136,6 +172,8 @@
             // 
             this.c1StatusBar1.LeftPaneItems.Add(this.lblCommStatus);
             this.c1StatusBar1.LeftPaneItems.Add(this.ribbonSeparator1);
+            this.c1StatusBar1.LeftPaneItems.Add(this.lblConnectionStatus);
+            this.c1StatusBar1.LeftPaneItems.Add(this.ribbonSeparator2);
             this.c1StatusBar1.LeftPaneItems.Add(this.lblHwVersion);
             this.c1StatusBar1.Location = new System.Drawing.Point(0, 349);
             this.c1StatusBar1.Name = "c1StatusBar1";
@@ -144,8 +182,9 @@
             // 
             // lblCommStatus
             // 
+            this.lblCommStatus.Description = "The status of the COM port";
             this.lblCommStatus.Name = "lblCommStatus";
-            this.lblCommStatus.Text = "Not Connected";
+            this.lblCommStatus.Text = "Closed";
             // 
             // ribbonSeparator1
             // 
@@ -228,39 +267,14 @@
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Debug Info";
             // 
-            // ribbonGroup3
+            // lblConnectionStatus
             // 
-            this.ribbonGroup3.Items.Add(this.ribbonButton3);
-            this.ribbonGroup3.Name = "ribbonGroup3";
-            this.ribbonGroup3.Text = "Firmware";
+            this.lblConnectionStatus.Name = "lblConnectionStatus";
+            this.lblConnectionStatus.Text = "Not Connected";
             // 
-            // ribbonButton2
+            // ribbonSeparator2
             // 
-            this.ribbonButton2.Description = "Read configuration from EEPROM";
-            this.ribbonButton2.LargeImage = ((System.Drawing.Image)(resources.GetObject("ribbonButton2.LargeImage")));
-            this.ribbonButton2.Name = "ribbonButton2";
-            this.ribbonButton2.SmallImage = ((System.Drawing.Image)(resources.GetObject("ribbonButton2.SmallImage")));
-            this.ribbonButton2.Text = "Read";
-            this.ribbonButton2.ToolTip = "Read the confituration from the EEPROM";
-            this.ribbonButton2.Click += new System.EventHandler(this.ribbonButton2_Click);
-            // 
-            // ribbonButton1
-            // 
-            this.ribbonButton1.Description = "Save settings to EEPROM";
-            this.ribbonButton1.LargeImage = ((System.Drawing.Image)(resources.GetObject("ribbonButton1.LargeImage")));
-            this.ribbonButton1.Name = "ribbonButton1";
-            this.ribbonButton1.SmallImage = ((System.Drawing.Image)(resources.GetObject("ribbonButton1.SmallImage")));
-            this.ribbonButton1.Text = "Upload";
-            this.ribbonButton1.ToolTip = "Save current configuration to EEPROM";
-            this.ribbonButton1.Click += new System.EventHandler(this.ribbonButton1_Click);
-            // 
-            // ribbonButton3
-            // 
-            this.ribbonButton3.LargeImage = global::PitBox.Properties.Resources.chip;
-            this.ribbonButton3.Name = "ribbonButton3";
-            this.ribbonButton3.SmallImage = ((System.Drawing.Image)(resources.GetObject("ribbonButton3.SmallImage")));
-            this.ribbonButton3.Text = "Flash";
-            this.ribbonButton3.Click += new System.EventHandler(this.ribbonButton3_Click);
+            this.ribbonSeparator2.Name = "ribbonSeparator2";
             // 
             // Form1
             // 
@@ -324,6 +338,8 @@
         private System.Windows.Forms.GroupBox groupBox4;
         private C1.Win.C1Ribbon.RibbonGroup ribbonGroup3;
         private C1.Win.C1Ribbon.RibbonButton ribbonButton3;
+        private C1.Win.C1Ribbon.RibbonLabel lblConnectionStatus;
+        private C1.Win.C1Ribbon.RibbonSeparator ribbonSeparator2;
     }
 }
 

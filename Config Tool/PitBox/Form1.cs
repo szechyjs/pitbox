@@ -19,9 +19,12 @@ namespace PitBox
         SerialPort mSerialPort;
         Packet mPacket;
         Thread mReadThread;
+        Thread mCommInitThread;
         ManualResetEvent mShutdownEvent = new ManualResetEvent(false);
         ManualResetEvent mPauseEvent = new ManualResetEvent(true);
+        bool mConnectionEstablished = false;
 
+        private static Mutex mSerialPortMutex = new Mutex();
         private readonly ushort CurrentFirmwareVersion = 2;
 
         public static string BoardType { get; set; }
@@ -38,10 +41,13 @@ namespace PitBox
                 lblVersion.Text = "Version: " + Application.ProductVersion;
         }
 
-        private void StartCommThread()
+        private void StartCommThreads()
         {
             mReadThread = new Thread(new ThreadStart(ReadComm));
             mReadThread.Start();
+
+            mCommInitThread = new Thread(new ThreadStart(EstablishConnection));
+            mCommInitThread.Start();
         }
 
         private void PauseCommThread()
@@ -196,6 +202,8 @@ namespace PitBox
 
                         case 01:
                             UpdateHardwareVersion();
+                            mConnectionEstablished = true;
+                            lblConnectionStatus.Text = "Connected";
                             break;
 
                         default:
@@ -229,12 +237,14 @@ namespace PitBox
 
         private void SendPacket(Packet packet)
         {
+            mSerialPortMutex.WaitOne();
             if (mSerialPort != null)
                 if (mSerialPort.IsOpen)
                 {
                     var bytes = packet.GetPacket();
                     mSerialPort.Write(bytes, 0, bytes.Length);
                 }
+            mSerialPortMutex.ReleaseMutex();
         }
 
         private void SendPing()
@@ -269,12 +279,18 @@ namespace PitBox
 
         private void ribbonButton1_Click(object sender, EventArgs e)
         {
-            SendSetConfig();
+            if (mConnectionEstablished)
+                SendSetConfig();
+            else
+                MessageBox.Show("A connection hasn't been established with board. Configuration can't be uploaded.", "No Connection");
         }
 
         private void ribbonButton2_Click(object sender, EventArgs e)
         {
-            SendGetConfig();
+            if (mConnectionEstablished)
+                SendGetConfig();
+            else
+                MessageBox.Show("A connection hasn't been established wit the board. Configuration can't be read.", "No Connection");
         }
 
         private void serialPortCombo_SelectedIndexChanged(object sender, EventArgs e)
@@ -285,8 +301,12 @@ namespace PitBox
                 {
                     PauseCommThread();
                 }
+                DebugMessage("Closing " + mSerialPort.PortName);
                 mSerialPort.Close();
-                lblCommStatus.Text = "Not connected";
+                lblCommStatus.Text = "Closed";
+                mConnectionEstablished = false;
+                lblConnectionStatus.Text = "Not Connected";
+                lblHwVersion.Text = "Firmware Version:";
             }
 
             if (serialPortCombo.SelectedItem == null)
@@ -301,21 +321,23 @@ namespace PitBox
         {
             try
             {
+                DebugMessage("Opening " + mSerialPort.PortName);
                 mSerialPort.Open();
             }
             catch (System.IO.IOException)
             {
+                DebugMessage("Failed opening " + mSerialPort.PortName);
                 return;
             }
 
             if (mSerialPort.IsOpen)
             {
-                lblCommStatus.Text = "Connected";
+                lblCommStatus.Text = "Open";
 
                 if (mReadThread != null)
                     ResumeCommThread();
                 else
-                    StartCommThread();
+                    StartCommThreads();
             }
         }
 
@@ -363,9 +385,59 @@ namespace PitBox
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            DebugMessage("Setting up COM port");
             SetupComm();
-            SendPing();
-            SendGetConfig();
+        }
+
+        private void EstablishConnection()
+        {
+            while (true)
+            {
+                mPauseEvent.WaitOne(Timeout.Infinite);
+
+                if (mShutdownEvent.WaitOne(0))
+                    return;
+
+                if (!mConnectionEstablished)
+                {
+                    int retries = 1;
+                    int delay_ms;
+
+                    DebugMessage("Attempting to ping board");
+                    SendPing();
+                    Thread.Sleep(50);
+
+                    while (!mConnectionEstablished)
+                    {
+                        mPauseEvent.WaitOne(Timeout.Infinite);
+
+                        if (mShutdownEvent.WaitOne(0))
+                            return;
+
+                        delay_ms = GetBackoff(retries, 200, 10);
+                        DebugMessage("Ping failed, retry in " + (delay_ms / 1000) + "s");
+                        Thread.Sleep(delay_ms);
+                        retries++;
+                        SendPing();
+                        Thread.Sleep(50);
+                    }
+                    DebugMessage("Ping successful, getting config");
+                    SendGetConfig();
+                }
+            }
+        }
+
+        private static int GetBackoff(int c, int interval, int ceiling = 10)
+        {
+            if (c <= 0)
+                throw new ArgumentOutOfRangeException("Pass a number greater than zero");
+
+            int max_k = (int)Math.Pow(2, Math.Min(c, ceiling)) - 1;
+
+            Random r = new Random();
+            int k = r.Next(max_k);
+
+            return k * interval;
         }
 
         private void ribbonButton3_Click(object sender, EventArgs e)
@@ -373,11 +445,19 @@ namespace PitBox
             BoardSelect bs = new BoardSelect();
             if (bs.ShowDialog(this) == System.Windows.Forms.DialogResult.Yes)
             {
+                DebugMessage("Closing " + mSerialPort.PortName);
                 PauseComm();
+                Thread.Sleep(500);
                 Firmware fw = new Firmware();
-                fw.Upload(BoardType, serialPortCombo.SelectedItem.Text);
+                if (!fw.Upload(BoardType, serialPortCombo.SelectedItem.Text))
+                    MessageBox.Show("Flashing did not complete successfully, double check your connections.", "Flash Fail");
                 StartComm();
             }
+        }
+
+        private void DebugMessage(string message)
+        {
+            textBox1.AppendText(message + Environment.NewLine);
         }
     }
 }
