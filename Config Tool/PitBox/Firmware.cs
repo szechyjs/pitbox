@@ -27,7 +27,7 @@ namespace PitBox
 
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = "firmware\\avrdude.exe";
-            startInfo.Arguments = "-Cfirmware\\avrdude.conf -q -q -p" + board.Mcu + " -c" +
+            startInfo.Arguments = "-Cfirmware\\avrdude.conf -q -p" + board.Mcu + " -c" +
                                     board.Protocol + " -P" + port + " -b" + board.BaudRate +
                                     " -D -Uflash:w:firmware\\" + board_string + ".hex:i";
             startInfo.RedirectStandardError = true;
@@ -45,7 +45,10 @@ namespace PitBox
             proc.BeginOutputReadLine();
 
             if (!proc.WaitForExit(15 * 1000))
+            {
                 proc.Kill();
+                return false;
+            }
 
             return true;
         }
@@ -60,6 +63,16 @@ namespace PitBox
         {
             if (!String.IsNullOrEmpty(err.Data))
                 mErrorString += err.Data;
+        }
+
+        public string GetStdOut()
+        {
+            return mStdOutString;
+        }
+
+        public string GetStdErr()
+        {
+            return mErrorString;
         }
     }
 
