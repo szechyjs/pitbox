@@ -82,6 +82,7 @@ namespace PitBox
 
             mSerialPort = new SerialPort();
             mSerialPort.BaudRate = 9600;
+            mSerialPort.DtrEnable = true;
 
             serialPortCombo.SelectedIndex = 0;
         }
