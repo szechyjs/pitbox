@@ -47,6 +47,8 @@
             this.c1StatusBar1 = new C1.Win.C1Ribbon.C1StatusBar();
             this.lblCommStatus = new C1.Win.C1Ribbon.RibbonLabel();
             this.ribbonSeparator1 = new C1.Win.C1Ribbon.RibbonSeparator();
+            this.lblConnectionStatus = new C1.Win.C1Ribbon.RibbonLabel();
+            this.ribbonSeparator2 = new C1.Win.C1Ribbon.RibbonSeparator();
             this.lblHwVersion = new C1.Win.C1Ribbon.RibbonLabel();
             this.lblVersion = new C1.Win.C1Ribbon.RibbonLabel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -56,8 +58,6 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.lblConnectionStatus = new C1.Win.C1Ribbon.RibbonLabel();
-            this.ribbonSeparator2 = new C1.Win.C1Ribbon.RibbonSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.c1Ribbon1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.c1CommandHolder1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.c1StatusBar1)).BeginInit();
@@ -190,6 +190,15 @@
             // 
             this.ribbonSeparator1.Name = "ribbonSeparator1";
             // 
+            // lblConnectionStatus
+            // 
+            this.lblConnectionStatus.Name = "lblConnectionStatus";
+            this.lblConnectionStatus.Text = "Not Connected";
+            // 
+            // ribbonSeparator2
+            // 
+            this.ribbonSeparator2.Name = "ribbonSeparator2";
+            // 
             // lblHwVersion
             // 
             this.lblHwVersion.Name = "lblHwVersion";
@@ -255,7 +264,7 @@
             this.groupBox3.Size = new System.Drawing.Size(128, 51);
             this.groupBox3.TabIndex = 7;
             this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Red On Time (ms)";
+            this.groupBox3.Text = "Delay Time (ms)";
             // 
             // groupBox4
             // 
@@ -266,15 +275,6 @@
             this.groupBox4.TabIndex = 8;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Debug Info";
-            // 
-            // lblConnectionStatus
-            // 
-            this.lblConnectionStatus.Name = "lblConnectionStatus";
-            this.lblConnectionStatus.Text = "Not Connected";
-            // 
-            // ribbonSeparator2
-            // 
-            this.ribbonSeparator2.Name = "ribbonSeparator2";
             // 
             // Form1
             // 
