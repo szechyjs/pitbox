@@ -452,6 +452,9 @@ namespace PitBox
                 Firmware fw = new Firmware();
                 if (!fw.Upload(BoardType, serialPortCombo.SelectedItem.Text))
                     MessageBox.Show("Flashing did not complete successfully, double check your connections.", "Flash Fail");
+
+                MessageBox.Show(fw.GetStdErr(), "Flash Output");
+
                 StartComm();
             }
         }
