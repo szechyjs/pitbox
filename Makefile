@@ -1,6 +1,6 @@
 ARDUINO_DIR = /usr/share/arduino
 
-BOARD_TAG = micro
+BOARD_TAG = uno
 ARDUINO_PORT = /dev/ttyACM*
 ARDUINO_LIBS = EEPROM
 
