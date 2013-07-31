@@ -25,7 +25,7 @@ namespace PitBox
         bool mConnectionEstablished = false;
 
         private static Mutex mSerialPortMutex = new Mutex();
-        private readonly ushort CurrentFirmwareVersion = 2;
+        private readonly ushort CurrentFirmwareVersion = 3;
 
         public static string BoardType { get; set; }
 
