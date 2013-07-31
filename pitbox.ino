@@ -202,7 +202,7 @@ void buttonTriggered()
     gEventRed = gTimer.pulse(PIN_RED_LEDS, config.redTime_ms, HIGH);
     gEventGreenDelay = gTimer.after(config.redTime_ms + 100, triggerGreen);
     gEventDelay = gTimer.after(config.resetTime_ms, delayTimeout);
-    gEventSeq = gTimer.after(config.redTime_ms + config.greenTime_ms + 15, sequenceComplete);
+    gEventSeq = gTimer.after(config.redTime_ms + config.greenTime_ms + 200, sequenceComplete);
   }
 }
 
