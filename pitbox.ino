@@ -11,6 +11,7 @@
 *******************************************************************************/
 
 #include <EEPROM.h>
+#include <Timer.h>
 #include "pitbox.h"
 #include "packet.h"
 
@@ -35,13 +36,22 @@ struct ConfigStruct {
   CONFIG_VERSION
 };
 
+unsigned long gLastTrigger = 0;
+bool gSequenceActive = false;
 bool gSequenceLocked = false;
-bool gSequenceAbort = false;
-long gSequenceStart;
+int gEventRed, gEventGreen, gEventGreenDelay, gEventDelay, gEventSeq;
+Timer gTimer;
 
 //
 // Serial I/O
 //
+
+void writeDebug(String message)
+{
+#ifdef VERBOSE
+  Serial.println(message);
+#endif
+}
 
 void writeHelloPacket()
 {
@@ -130,91 +140,42 @@ void readConfigPacket()
   writeConfigPacket();
 }
 
-/**
- * A delay that is abortable by changing the global variable ::gSequenceAbort
- * @param time The length in milliseconds to delay
- */
-void abortDelay(int time)
+void stopEvents()
 {
-  int start = millis();
-  int stop = start + time;
-  while (millis() < stop)
-  {
-    if (gSequenceAbort)
-      return;
-  }
+  gTimer.stop(gEventRed);
+  gTimer.stop(gEventGreen);
+  gTimer.stop(gEventGreenDelay);
+  gTimer.stop(gEventDelay);
+  gTimer.stop(gEventSeq);
 }
 
-/**
- * Fades the selected LED on then off
- * @param pin    The pin number
- * @param speed  The rate of the fade, low is faster
- * @param length The length of the sequence in milliseconds
- */
-void fadeLed(int pin, int speed, int length)
+void abortSequence()
 {
-  int fadeIncrement = 5;
-  int adj_length = length - (2 * ((255 / fadeIncrement) * speed));
-  for (int fadeValue = 0; fadeValue <= 255; fadeValue += fadeIncrement)
-  {
-    analogWrite(pin, fadeValue);
-    abortDelay(speed);
-  }
-
-  abortDelay(adj_length);
-
-  for (int fadeValue = 0; fadeValue >= 0; fadeValue -= fadeIncrement)
-  {
-    analogWrite(pin, fadeValue);
-    abortDelay(speed);
-  }
+  writeDebug("Aborting");
+  stopEvents(); 
+  digitalWrite(PIN_RED_LEDS, LOW);
+  digitalWrite(PIN_GREEN_LEDS, LOW);
+  gSequenceActive = false;
+  gSequenceLocked = false;
 }
 
-/**
- * Turn the selected LED on then off
- * @param pin  The pin number
- * @param time The length of the sequence in milliseconds
- */
-void stepLed(int pin, int time)
+void triggerGreen()
 {
-  digitalWrite(pin, HIGH);
-  abortDelay(time);
-  digitalWrite(pin, LOW);
+  writeDebug("Triggering green");
+  gEventGreen = gTimer.pulse(PIN_GREEN_LEDS, config.greenTime_ms, HIGH);
 }
 
-/**
- * Turns on the red LEDs
- * @param time The length of time in milliseconds the LEDs stay on
- */
-void redLeds(int time)
+void delayTimeout()
 {
-  stepLed(PIN_RED_LEDS, time);
+  writeDebug("Delay timeout");
+  gSequenceLocked = false;
 }
 
-/**
- * Turns on the green LEDs
- * @param time The length of time in milliseconds the LEDs stay on
- */
-void greenLeds(int time)
+void sequenceComplete()
 {
-  stepLed(PIN_GREEN_LEDS, time);
-}
-
-/**
- * Starts the LED sequence
- */
-void processTrigger()
-{
-  // Turn on red LEDs
-  if (config.redMode == 0)
-    redLeds(config.redTime_ms);
-  else if (config.redMode == 1)
-    fadeLed(PIN_RED_LEDS, 30, config.redTime_ms);
-  // Turn on green LEDs
-  if (config.greenMode == 0)
-    greenLeds(config.greenTime_ms);
-  else if (config.greenMode == 1)
-    fadeLed(PIN_GREEN_LEDS, 30, config.greenTime_ms);
+  writeDebug("Completed");
+  stopEvents();
+  gSequenceActive = false;
 }
 
 /**
@@ -222,19 +183,26 @@ void processTrigger()
  */
 void buttonTriggered()
 {
-  if ((millis() - gSequenceStart) > (config.resetTime_ms + config.redTime_ms))
-  {
-    gSequenceLocked = false;
-    gSequenceAbort = true;
-  }
-
+  unsigned long mills = millis();
+  if (mills - gLastTrigger < 250)
+    return;
+  
+  gLastTrigger = mills;
+  writeDebug("Triggered");
+  
+  
   if (!gSequenceLocked)
   {
+    if (gSequenceActive)
+      abortSequence();
+  
+    writeDebug("Starting sequence");
+    gSequenceActive = true;
     gSequenceLocked = true;
-    gSequenceAbort = false;
-    gSequenceStart = millis();
-    processTrigger();
-    gSequenceLocked = false;
+    gEventRed = gTimer.pulse(PIN_RED_LEDS, config.redTime_ms, HIGH);
+    gEventGreenDelay = gTimer.after(config.redTime_ms + 100, triggerGreen);
+    gEventDelay = gTimer.after(config.resetTime_ms, delayTimeout);
+    gEventSeq = gTimer.after(config.redTime_ms + config.greenTime_ms + 15, sequenceComplete);
   }
 }
 
@@ -260,11 +228,14 @@ void setup()
   digitalWrite(PIN_TRIGGER, HIGH);
   digitalWrite(PIN_STATUS_LED, HIGH);
 
-  // Attach interrput to button
-  attachInterrupt(0, buttonTriggered, FALLING);
-
   Serial.begin(9600);
   writeHelloPacket();
+  
+  gSequenceActive = false;
+  gEventRed = gEventGreen = gEventGreenDelay = gEventDelay = gEventSeq = 0;
+  
+  // Attach interrput to button
+  attachInterrupt(0, buttonTriggered, FALLING);
 }
 
 static void readSerialBytes(char *dest_buf, int num_bytes, int offset)
@@ -411,4 +382,5 @@ void loop()
 {
   readIncomingSerialData();
   handleInputPacket();
+  gTimer.update();
 }
