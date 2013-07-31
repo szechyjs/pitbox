@@ -274,6 +274,8 @@ namespace PitBox
             packet.AddTag(0x01, red);
             packet.AddTag(0x02, green);
             packet.AddTag(0x03, delay);
+            packet.AddTag(0x04, 0); // Red mode
+            packet.AddTag(0x05, 0); // Green mode
 
             SendPacket(packet);
         }
