@@ -5,7 +5,7 @@
 #define PIN_STATUS_LED  17
 #define PIN_RED_LEDS    6
 #define PIN_GREEN_LEDS  5
-#define PIN_TRIGGER     4
+#define PIN_TRIGGER     3
 
 // Configuration settings
 #define CONFIG_VERSION "v2"
